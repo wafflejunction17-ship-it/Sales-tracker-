@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Waffle Junction - Sales Tracker</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            max-width: 500px;
+            margin: auto;
+            padding: 20px;
+            background-color: #fdf6e3;
+            color: #4b2e1e;
+            transition: background 0.3s, color 0.3s;
+        }
+        h1 {
+            text-align: center;
+            color: #a67c52;
+        }
+        input, button {
+            padding: 10px;
+            margin: 5px 0;
+            width: 100%;
+            font-size: 16px;
+            border-radius: 5px;
+            border: 1px solid #d6b48c;
+        }
+        button {
+            background-color: #a67c52;
+            color: white;
+            border: none;
+            font-weight: bold;
+        }
+        button:hover {
+            background-color: #8b623d;
+            cursor: pointer;
+        }
+        .progress {
+            background: #d6b48c;
+            border-radius: 5px;
+            overflow: hidden;
+            height: 25px;
+            margin-top: 10px;
+        }
+        .progress-bar {
+            height: 100%;
+            background: gold;
+            width: 0%;
+            text-align: center;
+            color: black;
+            font-weight: bold;
+        }
+        table {
+            width: 100%;
+            margin-top: 20px;
+            border-collapse: collapse;
+        }
+        th, td {
+            padding: 8px;
+            border-bottom: 1px solid #d6b48c;
+            text-align: left;
+        }
+        footer {
+            margin-top: 20px;
+            font-size: 12px;
+            text-align: center;
+            color: #8b623d;
+        }
+        .dark-mode {
+            background-color: #1e1e1e;
+            color: #fdf6e3;
+        }
+        .dark-mode h1 {
+            color: gold;
+        }
+        .dark-mode .progress {
+            background: #555;
+        }
+        .dark-mode .progress-bar {
+            color: black;
+        }
+        .toggle-buttons {
+            display: flex;
+            gap: 10px;
+        }
+    </style>
+</head>
+<body>
+
+<h1>🍯 Waffle Junction Sales Tracker</h1>
+
+<label>Set Target (₹):</label>
+<input type="number" id="target" placeholder="Enter target amount">
+
+<label>Enter Today’s Sales (₹):</label>
+<input type="number" id="sales" placeholder="Enter sales amount">
+
+<div class="toggle-buttons">
+    <button onclick="addSales()">Add Sales</button>
+    <button onclick="resetSales()" style="background-color: red;">Reset</button>
+</div>
+
+<div class="progress">
+    <div class="progress-bar" id="progressBar">0%</div>
+</div>
+
+<p><b>Total Sales:</b> ₹<span id="totalSales">0</span></p>
+<p><b>Average Daily Sales:</b> ₹<span id="avgSales">0</span></p>
+
+<h3>Sales History</h3>
+<table>
+    <thead>
+        <tr>
+            <th>Date</th>
+            <th>Sales (₹)</th>
+        </tr>
+    </thead>
+    <tbody id="salesTable"></tbody>
+</table>
+
+<button onclick="toggleDarkMode()">Toggle Dark Mode</button>
+
+<footer>Designed for Waffle Junction 🍩</footer>
+
+<script>
+    let salesData = JSON.parse(localStorage.getItem("salesData")) || [];
+    let target = localStorage.getItem("target") || 0;
+    let darkMode = localStorage.getItem("darkMode") === "true";
+
+    document.getElementById("target").value = target;
+    if (darkMode) document.body.classList.add("dark-mode");
+
+    function addSales() {
+        let sales = parseFloat(document.getElementById("sales").value);
+        target = parseFloat(document.getElementById("target").value);
+        if (!sales || !target) return alert("Please enter both target and sales.");
+
+        let today = new Date().toLocaleDateString();
+        salesData.push({ date: today, amount: sales });
+        localStorage.setItem("salesData", JSON.stringify(salesData));
+        localStorage.setItem("target", target);
+
+        document.getElementById("sales").value = "";
+        updateDisplay();
+    }
+
+    function resetSales() {
+        if (confirm("Are you sure you want to reset all data?")) {
+            salesData = [];
+            localStorage.removeItem("salesData");
+            updateDisplay();
+        }
+    }
+
+    function updateDisplay() {
+        updateTable();
+        updateProgress();
+        updateTotals();
+    }
+
+    function updateTable() {
+        let table = document.getElementById("salesTable");
+        table.innerHTML = "";
+        salesData.forEach(row => {
+            table.innerHTML += `<tr><td>${row.date}</td><td>₹${row.amount}</td></tr>`;
+        });
+    }
+
+    function updateProgress() {
+        let totalSales = salesData.reduce((sum, item) => sum + item.amount, 0);
+        let percentage = target > 0 ? Math.min((totalSales / target) * 100, 100).toFixed(2) : 0;
+        document.getElementById("progressBar").style.width = percentage + "%";
+        document.getElementById("progressBar").textContent = percentage + "%";
+    }
+
+    function updateTotals() {
+        let totalSales = salesData.reduce((sum, item) => sum + item.amount, 0);
+        document.getElementById("totalSales").textContent = totalSales;
+        let avg = salesData.length > 0 ? (totalSales / salesData.length).toFixed(2) : 0;
+        document.getElementById("avgSales").textContent = avg;
+    }
+
+    function toggleDarkMode() {
+        document.body.classList.toggle("dark-mode");
+        darkMode = document.body.classList.contains("dark-mode");
+        localStorage.setItem("darkMode", darkMode);
+    }
+
+    updateDisplay();
+</script>
+
+</body>
+</html>
